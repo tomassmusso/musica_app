@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Tracker PWA</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1DB954">
+</head>
+<body>
+    <header>
+        <h1>🎵 Mi Music Tracker</h1>
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="Busca un álbum o EP...">
+            <button id="search-btn">Buscar</button>
+        </div>
+    </header>
+
+    <main>
+        <section>
+            <h2>Resultados de Búsqueda</h2>
+            <div id="results-container" class="grid-container"></div>
+        </section>
+
+        <hr>
+
+        <section>
+            <h2>Mis Álbumes Registrados</h2>
+            <div id="library-container" class="grid-container"></div>
+        </section>
+    </main>
+
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <span id="close-modal" class="close">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
