@@ -9,31 +9,78 @@
     <meta name="theme-color" content="#1DB954">
 </head>
 <body>
-    <header>
-        <h1>🎵 Mi Music Tracker</h1>
-        <div class="search-box">
-            <input type="text" id="search-input" placeholder="Busca un álbum o EP...">
-            <button id="search-btn">Buscar</button>
+
+    <header class="main-header">
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Buscar álbumes...">
+            <button id="search-btn">🔍</button>
+        </div>
+        <div class="user-profile">
+            <img src="https://ui-avatars.com/api/?name=User&background=1DB954&color=fff" alt="Perfil" id="profile-icon">
         </div>
     </header>
 
-    <main>
-        <section>
-            <h2>Resultados de Búsqueda</h2>
-            <div id="results-container" class="grid-container"></div>
+    <main id="content-area">
+        <section id="page-home" class="page">
+            <div class="section-block">
+                <h2>Recomendados</h2>
+                <div id="recommendations-container" class="grid-container">
+                    </div>
+            </div>
+
+            <div class="section-block">
+                <h2>Resultados de búsqueda</h2>
+                <div id="results-container" class="grid-container">
+                    <p class="empty-msg">Busca algo para empezar...</p>
+                </div>
+            </div>
         </section>
 
-        <hr>
+        <section id="page-records" class="page hidden">
+            <div class="section-block">
+                <h2>Mi Historial de Escucha</h2>
+                <div id="history-container">
+                    </div>
+            </div>
+        </section>
 
-        <section>
-            <h2>Mis Álbumes Registrados</h2>
-            <div id="library-container" class="grid-container"></div>
+        <section id="page-stats" class="page hidden">
+            <div class="section-block">
+                <h2>Estadísticas</h2>
+                <p>Próximamente: Gráficos de tus géneros más escuchados.</p>
+            </div>
+        </section>
+
+        <section id="page-later" class="page hidden">
+            <div class="section-block">
+                <h2>Escuchar más tarde</h2>
+                <p>Álbumes que guardaste para después.</p>
+            </div>
         </section>
     </main>
 
-    <div id="modal" class="modal hidden">
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="showPage('page-home', this)">
+            <span class="icon">🏠</span>
+            <span class="text">Inicio</span>
+        </button>
+        <button class="nav-item" onclick="showPage('page-records', this)">
+            <span class="icon">📚</span>
+            <span class="text">Registros</span>
+        </button>
+        <button class="nav-item" onclick="showPage('page-stats', this)">
+            <span class="icon">📊</span>
+            <span class="text">Stats</span>
+        </button>
+        <button class="nav-item" onclick="showPage('page-later', this)">
+            <span class="icon">⏳</span>
+            <span class="text">Más tarde</span>
+        </button>
+    </nav>
+
+    <div id="details-modal" class="modal hidden">
         <div class="modal-content">
-            <span id="close-modal" class="close">&times;</span>
+            <span class="close-btn">&times;</span>
             <div id="modal-body"></div>
         </div>
     </div>

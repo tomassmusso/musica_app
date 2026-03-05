@@ -1,135 +1,383 @@
-/* General */
-body {
-    background-color: #121212;
-    color: #ffffff;
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+body { background: #121212; color: white; font-family: sans-serif; }
+header { text-align: center; padding: 2rem; }
+
+.search-box { margin-bottom: 2rem; }
+input { padding: 10px; width: 300px; border-radius: 20px; border: none; }
+
+/* Layout del Modal */
+.modal-header-flex {
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+    margin-bottom: 30px;
+}
+
+.modal-cover {
+    width: 200px;
+    height: 200px;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.modal-info-text {
+    text-align: left;
+}
+
+.modal-info-text h2 {
+    font-size: 32px;
+    margin: 0 0 10px 0;
+}
+
+.artist-name {
+    font-weight: bold;
+    font-size: 18px;
     margin: 0;
+}
+
+.album-meta {
+    color: #b3b3b3;
+    font-size: 14px;
+}
+
+/* Botones */
+.modal-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.btn-register {
+    background-color: #1DB954;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-like {
+    background-color: #333;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+/* Lista de canciones dentro del modal */
+.tracklist-container {
+    text-align: left;
+    border-top: 1px solid #333;
+    padding-top: 20px;
+}
+
+.tracklist-container ul {
+    list-style: none;
     padding: 0;
 }
 
-header {
-    background-color: #000000;
-    padding: 20px;
-    text-align: center;
-    position: sticky;
-    top: 0;
+.tracklist-container li {
+    padding: 10px 0;
+    border-bottom: 1px solid #222;
+    color: #b3b3b3;
+}
+
+.tracklist-container li span {
+    color: #fff;
+    margin-right: 10px;
+}
+
+/* La X de cerrar mejorada */
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 30px;
+    color: #b3b3b3;
+    cursor: pointer;
+    transition: color 0.3s, transform 0.3s;
+    z-index: 10;
+}
+
+.close-btn:hover {
+    color: #ffffff;
+    transform: scale(1.2);
+}
+
+/* Contenedor del Modal (asegúrate de que tenga posición relativa) */
+.modal-content {
+    position: relative;
+    background-color: #181818;
+    margin: 5% auto;
+    padding: 30px;
+    width: 90%;
+    max-width: 800px;
+    border-radius: 12px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+}
+
+/* Estilo para las canciones con checkbox */
+.track-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #282828;
+}
+
+.track-item input[type="checkbox"] {
+    accent-color: #1DB954;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* Barra de Navegación Inferior */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #121212;
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0;
+    border-top: 1px solid #282828;
     z-index: 100;
 }
 
-h1 { color: #1DB954; } /* Verde Spotify */
-
-/* Buscador */
-.search-box {
-    margin-top: 15px;
+.modal-content {
+    max-height: 80vh; /* Que no ocupe el 100% de la altura para que se vea que hay algo atrás */
+    overflow-y: auto; /* Permite el scroll interno */
+}
+.nav-item {
+    background: none;
+    border: none;
+    color: #b3b3b3; /* Gris para inactivos */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: 0.3s;
+    flex: 1;
 }
 
-input {
-    padding: 12px;
+.nav-item .icon {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.nav-item .text {
+    font-size: 11px;
+    font-weight: bold;
+}
+
+/* Estado Activo (Verde Spotify) */
+.nav-item.active {
+    color: #1DB954;
+}
+
+.nav-item:hover {
+    color: #ffffff;
+}
+
+/* Ajuste para que el contenido no quede debajo de la barra */
+main {
+    padding-bottom: 70px;
+}
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: #000;
+    position: sticky;
+    top: 0;
+}
+
+.search-container {
+    display: flex;
+    background: #242424;
+    border-radius: 25px;
+    padding: 5px 15px;
     width: 60%;
-    max-width: 400px;
-    border-radius: 20px;
+}
+
+.search-container input {
+    background: transparent;
     border: none;
+    color: white;
+    padding: 8px;
+    width: 100%;
     outline: none;
 }
 
-button {
-    padding: 12px 20px;
-    border-radius: 20px;
-    border: none;
-    background-color: #1DB954;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    margin-left: 5px;
+.user-profile img {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
-button:hover { background-color: #1ed760; }
+/* 1. Dale espacio al final del formulario de registro */
+.registration-form {
+    padding-bottom: 80px; /* Suficiente para que la barra no tape el botón */
+}
 
-/* Grid de Álbumes */
-.grid-container {
+/* 2. Asegúrate de que el modal esté por ENCIMA de la barra inferior */
+.modal {
+    z-index: 2000; /* Mayor que el z-index de la bottom-nav */
+}
+
+/* 3. Estilo para que el formulario se vea más limpio */
+.registration-form label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+    color: #1DB954;
+}
+
+.registration-form input[type="date"],
+.registration-form input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    background: #282828;
+    border: none;
+    border-radius: 5px;
+    color: white;
+}
+
+.modal-actions-sticky {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column; /* Botones uno sobre otro en móvil */
+    gap: 10px;
+}
+
+.btn-cancel {
+    background: transparent;
+    color: #b3b3b3;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+/* Contenedor de la lista de registros */
+#history-container {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Tarjeta de cada registro */
+.history-card {
+    display: flex;
+    align-items: center;
+    background: #181818;
+    border-radius: 10px;
+    padding: 12px;
+    gap: 15px;
+    transition: transform 0.2s;
+}
+
+.history-card:hover {
+    transform: scale(1.02);
+    background: #282828;
+}
+
+.history-img {
+    width: 70px;
+    height: 70px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+
+.history-info {
+    flex-grow: 1;
+}
+
+.history-info h4 {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+}
+
+.history-info p {
+    margin: 0;
+    font-size: 13px;
+    color: #b3b3b3;
+}
+
+.history-rating {
+    color: #FFD700; /* Dorado para las estrellas */
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.history-date {
+    font-size: 11px;
+    color: #555;
+    margin-top: 5px;
+}
+.registration-form {
+    padding-bottom: 100px; /* Esto crea un espacio extra al final del scroll */
+}
+
+#results-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 20px;
     padding: 20px;
 }
 
-.card {
-    background-color: #181818;
+.album-card {
+    background: #181818;
     padding: 15px;
     border-radius: 8px;
-    transition: background-color 0.3s ease;
-    display: flex;
-    flex-direction: column;
-}
-
-.card:hover {
-    background-color: #282828;
-}
-
-.card img {
-    width: 100%; /* Esto arregla que se amontonen */
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-}
-
-.info h4 {
-    margin: 5px 0;
-    font-size: 14px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.info p {
-    color: #b3b3b3;
-    font-size: 12px;
-    margin: 5px 0 10px 0;
-}
-
-.info button {
-    width: 100%;
-    font-size: 11px;
-    padding: 8px;
-    margin-top: 5px;
-    background-color: #333;
-}
-
-.info .btn-detail { background-color: #1DB954; }
-
-/* Modal */
-.modal {
-    position: fixed;
-    z-index: 200;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.85);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.modal-content {
-    background-color: #282828;
-    padding: 25px;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 500px;
-    max-height: 80vh;
-    overflow-y: auto;
-    position: relative;
-}
-
-.close {
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    font-size: 30px;
     cursor: pointer;
+    transition: background 0.3s;
+}
+.saved-badge {
+    background: #1DB954;
+    color: black;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 12px;
+    display: inline-block;
+    margin-bottom: 10px;
 }
 
+.saved-data {
+    background: #282828;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.saved-data p {
+    margin: 5px 0;
+}
+
+.track-item.is-favorite {
+    color: #1DB954;
+    font-weight: bold;
+}
+
+
+
+.album-card:hover { background: #282828; }
+.album-card img { width: 100%; border-radius: 4px; }
+
+/* Estilos básicos para el modal de detalles */
+/* Cambia esto: */
 .hidden { display: none; }
+
+/* Por esto: */
+.hidden { display: none !important; }
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000;}

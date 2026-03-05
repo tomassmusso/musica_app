@@ -1,136 +1,310 @@
-// CONFIGURACIÓN DE SPOTIFY
 const clientId = 'f3309d6b27164ad2b14289af6eac4b59';
 const clientSecret = '05d5d8660fad4c4f8dd617b87db2a4c6';
-let accessToken = '';
 
-// TRUCO: Decodificador para que el chat no bloquee las URLs reales
-const b = (s) => atob(s);
-const uT = b('aHR0cHM6Ly9hY2NvdW50cy5zcG90aWZ5LmNvbS9hcGkvdG9rZW4=');
-const uS = b('aHR0cHM6Ly9hcGkuc3BvdGlmeS5jb20vdjEvc2VhcmNoP3E9');
-const uA = b('aHR0cHM6Ly9hcGkuc3BvdGlmeS5jb20vdjEvYWxidW1zLw==');
-
-// 1. OBTENER TOKEN (Este método NO necesita Redirect URI)
-async function getSpotifyToken() {
-    try {
-        const response = await fetch(uT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': 'Basic ' + btoa(clientId + ':' + clientSecret)
-            },
-            body: 'grant_type=client_credentials'
-        });
-        const data = await response.json();
-        if (data.access_token) {
-            accessToken = data.access_token;
-            console.log("✅ Token obtenido correctamente");
-        }
-    } catch (error) {
-        console.error("❌ Error de conexión:", error);
-    }
+// 1. Función para obtener el Token de Acceso
+async function getToken() {
+    const response = await fetch('https://accounts.spotify.com/api/token', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': 'Basic ' + btoa(clientId + ':' + clientSecret)
+        },
+        body: 'grant_type=client_credentials'
+    });
+    const data = await response.json();
+    return data.access_token;
 }
 
-// 2. BUSCAR ÁLBUMES
-async function searchAlbums() {
-    const q = document.getElementById('search-input').value;
-    if (!q) return;
-
-    // Forzamos a que espere el token antes de seguir
-    await getSpotifyToken(); 
-
-    if (!accessToken) {
-        console.error("No se pudo obtener el token");
-        return;
-    }
-
-    try {
-        const res = await fetch(`${uS}${encodeURIComponent(q)}&type=album&limit=12`, {
-            headers: { 'Authorization': 'Bearer ' + accessToken }
-        });
-        const data = await res.json();
-        if (data.albums) renderResults(data.albums.items);
-    } catch (error) {
-        console.error("❌ Error en búsqueda:", error);
-    }
+// 2. Función para buscar álbumes o canciones
+async function searchSpotify(query) {
+    const token = await getToken();
+    const response = await fetch(`https://api.spotify.com/v1/search?q=${query}&type=album,track&limit=10`, {
+        headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const data = await response.json();
+    displayResults(data.albums.items); // Mandamos los álbumes a una función que los pinte
 }
 
-// 3. RENDERIZAR RESULTADOS
-function renderResults(albums) {
+// 3. Función para mostrar los resultados en el HTML
+function displayResults(albums) {
     const container = document.getElementById('results-container');
-    container.innerHTML = '';
+    container.innerHTML = ''; // Limpiar búsqueda anterior
+
     albums.forEach(album => {
-        const div = document.createElement('div');
-        div.className = 'card';
-        const img = album.images[0]?.url || 'https://placehold.co/300';
-        div.innerHTML = `
-            <img src="${img}">
-            <div class="info">
-                <h4>${album.name}</h4>
-                <p>${album.artists[0].name}</p>
-                <div class="card-buttons">
-                    <button class="btn-save" onclick="saveAlbum('${album.id}', '${album.name.replace(/'/g, "\\'")}', '${album.artists[0].name.replace(/'/g, "\\'")}', '${img}')">Añadir</button>
-                    <button class="btn-detail" onclick="showDetails('${album.id}')">Canciones</button>
-                </div>
-            </div>`;
-        container.appendChild(div);
+        const card = document.createElement('div');
+        card.classList.add('album-card');
+        card.innerHTML = `
+            <img src="${album.images[0].url}" alt="${album.name}">
+            <h3>${album.name}</h3>
+            <p>${album.artists[0].name}</p>
+        `;
+        // Al hacer click, buscaremos los detalles del álbum
+        card.onclick = () => getAlbumDetails(album.id);
+        container.appendChild(card);
     });
 }
 
-// 4. DETALLES DEL ÁLBUM
-async function showDetails(id) {
-    if (!accessToken) await getSpotifyToken();
-    try {
-        const res = await fetch(`${uA}${id}`, {
-            headers: { 'Authorization': 'Bearer ' + accessToken }
-        });
-        const album = await res.json();
-        const tracks = album.tracks.items.map(t => `<li>${t.track_number}. ${t.name}</li>`).join('');
-        document.getElementById('modal-body').innerHTML = `
-            <h3>${album.name}</h3>
-            <ul style="text-align:left; list-style:none; padding:0;">${tracks}</ul>`;
-        document.getElementById('modal').classList.remove('hidden');
-    } catch (error) {
-        console.error("Error al cargar canciones");
-    }
-}
+// Escuchar el evento del botón de búsqueda
+document.getElementById('search-btn').addEventListener('click', () => {
+    const query = document.getElementById('search-input').value;
+    if (query) searchSpotify(query);
+});
 
-// 5. LOCAL STORAGE
-function saveAlbum(id, name, artist, img) {
-    let lib = JSON.parse(localStorage.getItem('myLibrary')) || [];
-    if (!lib.find(a => a.id === id)) {
-        lib.push({ id, name, artist, img });
-        localStorage.setItem('myLibrary', JSON.stringify(lib));
-        renderLibrary();
-    }
-}
+async function getAlbumDetails(albumId) {
+    const token = await getToken();
+    const response = await fetch(`https://api.spotify.com/v1/albums/${albumId}`, {
+        headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const album = await response.json();
 
-function renderLibrary() {
-    const container = document.getElementById('library-container');
-    const lib = JSON.parse(localStorage.getItem('myLibrary')) || [];
-    container.innerHTML = lib.map(a => `
-        <div class="card saved">
-            <img src="${a.img}">
-            <div class="info">
-                <h4>${a.name}</h4>
-                <p>${a.artist}</p>
-                <button class="btn-delete" onclick="deleteAlbum('${a.id}')">Eliminar</button>
+    // BUSCAMOS SI YA EXISTE EN EL HISTORIAL
+    const history = JSON.parse(localStorage.getItem('listeningHistory')) || [];
+    const savedEntry = history.find(entry => entry.albumId === albumId);
+
+    const modal = document.getElementById('details-modal');
+    const modalBody = document.getElementById('modal-body');
+
+    // Si existe, preparamos el resumen de lo guardado
+    let savedInfoHTML = '';
+    if (savedEntry) {
+        savedInfoHTML = `
+            <div class="saved-badge">✅ Álbum Registrado</div>
+            <div class="saved-data">
+                <p><strong>Fecha:</strong> ${savedEntry.date}</p>
+                <p><strong>Tu Nota:</strong> ${savedEntry.rating}/10 ⭐</p>
+                <p><strong>Favoritos:</strong> ${savedEntry.favTracks.join(', ') || 'Ninguno'}</p>
             </div>
-        </div>`).join('');
+            <hr>
+        `;
+    }
+
+    modalBody.innerHTML = `
+        <div class="modal-header-flex">
+            <img src="${album.images[0].url}" class="modal-cover">
+            <div class="modal-info-text">
+                ${savedInfoHTML}
+                <h2>${album.name}</h2>
+                <p class="artist-name">${album.artists[0].name}</p>
+                <p class="album-meta">${album.release_date.split('-')[0]} • ${album.total_tracks} canciones</p>
+            </div>
+        </div>
+        
+        <h3>Lista de canciones</h3>
+        <ul class="tracklist">
+            ${album.tracks.items.map(track => {
+                // Si el tema estaba en favoritos, le ponemos un check o color distinto
+                const isFav = savedEntry && savedEntry.favTracks.includes(track.name);
+                return `
+                    <li class="track-item ${isFav ? 'is-favorite' : ''}">
+                        <span>${track.track_number}. ${track.name}</span>
+                        ${isFav ? '<span>❤️</span>' : ''}
+                    </li>
+                `;
+            }).join('')}
+        </ul>
+        
+        ${!savedEntry ? `<button class="btn-primary" onclick="registerAlbum('${album.id}')">Registrar Escucha</button>` : ''}
+    `;
+
+    modal.classList.remove('hidden');
+    document.querySelector('.bottom-nav').style.display = 'none';
 }
 
-function deleteAlbum(id) {
-    let lib = JSON.parse(localStorage.getItem('myLibrary')).filter(a => a.id !== id);
-    localStorage.setItem('myLibrary', JSON.stringify(lib));
-    renderLibrary();
+// Esta función ahora muestra el formulario de registro
+function registerAlbum(albumId) {
+    const modalBody = document.getElementById('modal-body');
+    
+    // Guardamos el contenido actual (la info del álbum) para no perderla o simplemente redibujamos
+    // Aquí vamos a crear el formulario:
+    modalBody.innerHTML = `
+        <div class="registration-form">
+            <h2>Registrar Escucha</h2>
+            
+            <label>¿Cuándo lo escuchaste?</label>
+            <input type="date" id="listen-date" value="${new Date().toISOString().split('T')[0]}">
+            
+            <label>Calificación (1 a 10 ⭐)</label>
+            <input type="number" id="album-rating" min="1" max="10" value="7">
+            
+            <label>Canciones favoritas:</label>
+            <div id="fav-tracks-selection">
+                <p style="font-size: 12px; color: #b3b3b3;">Cargando tracks...</p>
+            </div>
+            
+            <div class="modal-actions-sticky">
+    <button class="btn-register" onclick="saveLoggedAlbum('${albumId}')">Confirmar Registro</button>
+    <button class="btn-cancel" onclick="getAlbumDetails('${albumId}')">Volver</button>
+</div>
+        </div>
+    `;
+    
+    // Volvemos a pedir los tracks para que el usuario elija
+    loadTracksForRegistry(albumId);
 }
 
-// EVENTOS
-document.getElementById('search-btn').addEventListener('click', searchAlbums);
-document.getElementById('close-modal').addEventListener('click', () => document.getElementById('modal').classList.add('hidden'));
+// Función auxiliar para cargar los checks de canciones
+async function loadTracksForRegistry(albumId) {
+    const token = await getToken();
+    const response = await fetch(`https://api.spotify.com/v1/albums/${albumId}`, {
+        headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const album = await response.json();
+    const container = document.getElementById('fav-tracks-selection');
+    
+    container.innerHTML = album.tracks.items.map(t => `
+        <div class="track-item">
+            <span>${t.track_number}. ${t.name}</span>
+            <input type="checkbox" class="track-fav" value="${t.name}">
+        </div>
+    `).join('');
+}
+
+function showPage(pageId, element) {
+    // 1. Ocultar todas las secciones correctamente
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.add('hidden');
+    });
+
+    // 2. Mostrar la sección elegida
+    const targetPage = document.getElementById(pageId);
+    if (targetPage) {
+        targetPage.classList.remove('hidden');
+    }
+
+    // 3. ACTUALIZAR LA BARRA (Quitar/Poner clase active)
+    document.querySelectorAll('.nav-item').forEach(nav => {
+        nav.classList.remove('active');
+    });
+    if (element) {
+        element.classList.add('active');
+    }
+
+    // 4. LIMPIAR BÚSQUEDA si vamos al Inicio
+    if (pageId === 'page-home') {
+        const resultsContainer = document.getElementById('results-container');
+        if (resultsContainer) {
+            resultsContainer.innerHTML = '<p class="empty-msg">Busca algo para empezar...</p>';
+        }
+        document.getElementById('search-input').value = '';
+    }
+
+    // 5. Cargar historial si vamos a registros
+    if (pageId === 'page-records') {
+        renderHistory();
+    }
+}
+
+async function loadRecommendations() {
+    const token = await getToken();
+    try {
+        // Pedimos los nuevos lanzamientos a Spotify
+        const response = await fetch('https://api.spotify.com/v1/browse/new-releases?limit=6', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await response.json();
+        
+        const container = document.getElementById('recommendations-container');
+        container.innerHTML = ''; // Limpiamos
+
+        data.albums.items.forEach(album => {
+            const card = document.createElement('div');
+            card.classList.add('album-card');
+            card.innerHTML = `
+                <img src="${album.images[0].url}" alt="${album.name}">
+                <h3>${album.name}</h3>
+                <p>${album.artists[0].name}</p>
+            `;
+            card.onclick = () => getAlbumDetails(album.id);
+            container.appendChild(card);
+        });
+    } catch (error) {
+        console.error("Error cargando recomendados:", error);
+    }
+}
+
+async function saveLoggedAlbum(albumId) {
+    const date = document.getElementById('listen-date').value;
+    const rating = document.getElementById('album-rating').value;
+    const selectedTracks = Array.from(document.querySelectorAll('.track-fav:checked')).map(cb => cb.value);
+
+    // Corregimos la URL para que use el API oficial de Spotify correctamente
+    const token = await getToken();
+    const response = await fetch(`https://api.spotify.com/v1/albums/${albumId}`, {
+        headers: { 'Authorization': 'Bearer ' + token }
+    });
+    
+    // Si la respuesta falla, avisamos y no guardamos undefined
+    if (!response.ok) {
+        alert("Error al obtener los datos del álbum. Asegúrate de usar Live Server.");
+        return;
+    }
+    
+    const album = await response.json();
+
+    const logEntry = {
+        albumId: album.id,
+        albumName: album.name,
+        artistName: album.artists[0].name,
+        albumImg: album.images[0].url,
+        date: date,
+        rating: rating,
+        favTracks: selectedTracks,
+        timestamp: Date.now()
+    };
+
+    let history = JSON.parse(localStorage.getItem('listeningHistory')) || [];
+    history.unshift(logEntry); 
+    localStorage.setItem('listeningHistory', JSON.stringify(history));
+
+    alert("¡Registro guardado con éxito! ⭐");
+    document.getElementById('details-modal').classList.add('hidden');
+    
+    // Recuperar la barra inferior
+    document.querySelector('.bottom-nav').style.display = 'flex';
+    
+    renderHistory();
+}
+
+function renderHistory() {
+    const container = document.getElementById('history-container');
+    const history = JSON.parse(localStorage.getItem('listeningHistory')) || [];
+
+    if (history.length === 0) {
+        container.innerHTML = `<p class="empty-msg">Aún no tienes registros.</p>`;
+        return;
+    }
+
+    container.innerHTML = history.map(entry => `
+        <div class="history-card" onclick="getAlbumDetails('${entry.albumId}')">
+            <img src="${entry.albumImg}" class="history-img">
+            <div class="history-info">
+                <h4>${entry.albumName}</h4>
+                <p>${entry.artistName}</p>
+                <div class="history-date">Escuchado el: ${entry.date}</div>
+            </div>
+            <div style="text-align:right">
+                <div class="history-rating">${entry.rating} / 10 ⭐</div>
+                <small style="color:#1DB954; font-size:10px;">${entry.favTracks ? entry.favTracks.length : 0} favs</small>
+            </div>
+        </div>
+    `).join('');
+}
+
+function likeAlbum(id) {
+    console.log("Añadiendo a favoritos:", id);
+    alert("Añadido a favoritos ❤️");
+}
+
+document.querySelector('.close-btn').addEventListener('click', () => {
+    document.getElementById('details-modal').classList.add('hidden');
+    // 👇 Agrega esta línea para recuperar la barra
+    document.querySelector('.bottom-nav').style.display = 'flex';
+});
 
 window.onload = () => {
-    renderLibrary();
-    if (location.protocol !== 'file:' && 'serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js');
-    }
+    // Cargamos los recomendados apenas abre la app
+    loadRecommendations();
+    
+    // Si ya tenías registros, los dejamos listos en segundo plano
+    renderHistory();
 };
